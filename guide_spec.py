@@ -123,6 +123,8 @@ notably advanced or idiomatic way. Fewer high-quality patterns beat padding.
 **Frequency:** ★★★★★ [brief label] | [register: spoken / written / formal / colloquial / literary]
 **Usage:** [2–3 sentences on when and why this pattern is used, with any nuance for this __SOURCE__'s register]
 **From __SOURCE_QUOTE__:** *直接引用原文。* / Pīnyīn. / English translation.
+  ALWAYS include all three parts on this line: the verbatim 原文 sentence, its full
+  pinyin, AND an English translation of that sentence — never omit the translation.
 **Examples** (Chinese / full pinyin / English):
 1. 中文例句。/ Pīnyīn. / English.
 2. 中文例句。/ Pīnyīn. / English.
