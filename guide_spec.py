@@ -68,11 +68,12 @@ Rules for the near-synonym block:
 _BLUEPRINT = """\
 ## Background & Context
 
-2–4 short paragraphs giving the reader what they need to understand this __SOURCE__:
-who the key people/orgs are, what the broader story is, why it matters — context a
-non-specialist B2/C1 reader would NOT get from the __SOURCE__ alone. If the __SOURCE__
-is from a Mainland source and the reader is Taiwan-oriented (or vice versa), put
-cross-strait register notes here.
+2–4 short paragraphs, **written in English**, giving the reader what they need to
+understand this __SOURCE__: who the key people/orgs are, what the broader story is,
+why it matters — context a non-specialist B2/C1 reader would NOT get from the
+__SOURCE__ alone. (Chinese terms may be cited inline, but the explanation itself is
+in English.) If the __SOURCE__ is from a Mainland source and the reader is
+Taiwan-oriented (or vice versa), put cross-strait register notes here.
 
 ### Cultural & Contextual Notes
 - **{term in characters}** ({pinyin}): 1–2 sentence English explanation — only for
