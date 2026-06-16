@@ -149,10 +149,17 @@ Bullet list of 4–6 main ideas or topics covered.
 
 ---
 
-## Comprehension Questions (5–7 questions)
+## Comprehension Questions (3–4 questions)
 
-Questions checking understanding of THIS __SOURCE__'s specific content. Mix factual
-recall and inference. Write each in Chinese with pinyin only — no answer here.
+Fewer but harder. Each question MUST require having actually engaged with THIS
+__SOURCE__ by __SOURCE_VERB__ — test specific details, claims, examples, or the
+chain of reasoning that appear ONLY in the source itself. A learner who skimmed
+the Vocabulary, Grammar, and Summary sections of this guide but skipped the actual
+__SOURCE_VERB__ should NOT be able to answer. Therefore: do NOT ask about anything
+already stated in the Summary/Key Themes, and do NOT ask for definitions of the
+vocab words. Favour questions that hinge on a specific stated detail, a speaker's
+stated reason or opinion, a number/name/sequence, or an inference that requires
+following the actual content. Write each in Chinese with pinyin only — no answer here.
 
 1. **Question in Chinese** (Pīnyīn)
 2. **Question in Chinese** (Pīnyīn)
