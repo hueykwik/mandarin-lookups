@@ -27,6 +27,15 @@ lookup("政府")  # {'hsk2': 4, 'hsk3': '4', 'tocfl': 'B2'}
 - `data/cedict_ts.u8` — [CC-CEDICT](https://cc-cedict.org/), used only to
   build a Traditional ↔ Simplified normalization map. Licensed CC BY-SA 4.0.
 
+## Routines
+
+- `routines/reading_brief.md` — the full prompt for the **daily Mandarin
+  reading-brief cloud routine**, kept here as the single source of truth. The
+  Claude Code routine config is just a thin bootstrap that locates this cloned
+  repo, reads this file, and follows it — so edit the prompt **here**, commit,
+  and the next run picks it up (no pasting into the routine UI). Topic keywords
+  and Google News query terms live in Steps 1–2 of that file.
+
 ## License
 
 Data files retain their upstream licenses. `lookups.py` is MIT.
