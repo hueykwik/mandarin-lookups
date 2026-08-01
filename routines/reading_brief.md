@@ -178,7 +178,21 @@ code the listening guide uses):
       print(guide_spec.annotate_synonym_levels(open('/tmp/brief.md').read()))" \
       > /tmp/brief_annotated.md
 
-Email the contents of /tmp/brief_annotated.md in Step 6.
+## Step 5.6 — Resolve illustrative-image markers
+
+The blueprint may emit `{{IMG|term|gloss}}` markers on concrete visual items (a
+night-market food, an object, a game). Turn each into a real photo (Wikimedia
+Commons / Openverse) — markers with no confident match are dropped automatically,
+so this never inserts a broken image. Same shared module, run after the annotator:
+
+    python3 -c "import sys; sys.path.insert(0,'$REPO_DIR'); import guide_spec; \
+      print(guide_spec.embed_images(open('/tmp/brief_annotated.md').read()))" \
+      > /tmp/brief_final.md
+
+If this step errors for any reason (e.g. network blocked in the sandbox), fall back
+to emailing /tmp/brief_annotated.md — do not block the brief on images.
+
+Email the contents of /tmp/brief_final.md in Step 6.
 
 ## Step 6 — Email it via Gmail MCP
 
@@ -186,7 +200,7 @@ Send the brief via the Gmail MCP connector to **huey.kwik@gmail.com**.
 
 - To: huey.kwik@gmail.com
 - Subject: `今日中文閱讀 {YYYY-MM-DD}` (use today's HST date)
-- Body: the brief from Step 5 — send as the message body. If the Gmail tool sends HTML, render the markdown to simple HTML preserving the vocab table. If it sends plain text, send the markdown as-is — Gmail will render the headings reasonably even as plain text.
+- Body: the brief from Step 5.6 (`/tmp/brief_final.md`) — send as the message body. If the Gmail tool sends HTML, render the markdown to simple HTML preserving the vocab table AND the `![alt](url)` images (as `<img>` tags — the URLs are public, so they load in the mail client). If it sends plain text, send the markdown as-is — Gmail will render the headings reasonably even as plain text.
 - Prefer sending directly; only create a draft if direct send isn't supported by the connector.
 
 ## Edge cases

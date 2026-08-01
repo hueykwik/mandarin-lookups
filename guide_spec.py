@@ -61,6 +61,35 @@ Rules for the near-synonym block:
 
 
 # ---------------------------------------------------------------------------
+# Illustrative-image marker sub-spec (embedded in the blueprint below).
+# The model only TAGS items; embed_images() resolves markers to real photos.
+# ---------------------------------------------------------------------------
+
+IMAGE_MARKER_RULES = """\
+### Image markers (concrete, visual items only)
+
+Some items are best understood by seeing them. For those — and ONLY those — emit an
+image marker on its OWN line, immediately after the entry it illustrates:
+
+    {{IMG|傳統字詞|short english gloss}}
+
+for example:  {{IMG|龍鬚糖|dragon's beard candy}}
+
+The marker is replaced later with a real photo, or removed if none is found, so:
+- First field = the Traditional term; second field = a short concrete English gloss.
+  Both are used as image-search queries, so make the gloss specific (a night-market
+  food, not just "candy").
+- Emit a marker ONLY for concrete, visually distinctive, usually culture-specific
+  things: foods and dishes, physical objects and tools, games and activities, places
+  and landmarks, animals, plants, garments. These may appear in the Cultural &
+  Contextual Notes and/or in the Key Vocabulary entries.
+- NEVER emit one for abstract words, feelings, qualities, states, verbs, or grammar —
+  anything a photo would not clarify (e.g. 心態, 糾結, 算是, 體驗). When unsure, omit.
+- At most 3 markers in the whole guide; pick the items where a picture helps most.
+  One marker per item, never repeat an item."""
+
+
+# ---------------------------------------------------------------------------
 # The blueprint. __SLOTS__ are filled by render_spec via str.replace (no .format,
 # so literal braces in examples are safe).
 # ---------------------------------------------------------------------------
@@ -79,6 +108,10 @@ Taiwan-oriented (or vice versa), put cross-strait register notes here.
 - **{term in characters}** ({pinyin}): 1–2 sentence English explanation — only for
   terms whose meaning relies on context the __SOURCE__ assumes.
 - … (3–6 bullets, only as many as actually useful)
+
+For any bullet naming a concrete, visually distinctive item (a food, object, place,
+game, garment), add an image marker on its own line right under that bullet — see
+"Image markers" in the Key Vocabulary section below.
 
 ---
 
@@ -100,6 +133,8 @@ in the table — do not guess from your own knowledge.
 "—" for any word not in the table.
 
 __NEAR_SYNONYM_RULES__
+
+__IMAGE_RULES__
 
 ### Words Used in Unexpected Senses
 
@@ -199,6 +234,7 @@ def render_spec(
     return (
         _BLUEPRINT
         .replace("__NEAR_SYNONYM_RULES__", NEAR_SYNONYM_RULES)
+        .replace("__IMAGE_RULES__", IMAGE_MARKER_RULES)
         .replace("__VOCAB_TARGET__", vocab_target)
         .replace("__GRAMMAR_TARGET__", grammar_target)
         .replace("__SOURCE_QUOTE__", source_quote)
@@ -265,3 +301,110 @@ def annotate_synonym_levels(markdown: str) -> str:
             ln = annotate_line(ln)
         out.append(ln)
     return "\n".join(out)
+
+
+# ---------------------------------------------------------------------------
+# Illustrative images: resolve {{IMG|term|gloss}} markers to real photo URLs.
+# Sources: Wikimedia Commons (precise) then Openverse (broad) — no API key.
+# Fails safe: any network/import/parse error, or no confident match, drops the
+# marker so a guide never ships a broken image or a leftover token.
+# ---------------------------------------------------------------------------
+
+_IMG_MARKER = re.compile(r'\{\{IMG\s*\|\s*([^|{}]+?)\s*\|\s*([^{}]*?)\s*\}\}')
+_IMG_UA = {"User-Agent": "mandarin-study-guide/1.0 (personal language study)"}
+_IMG_CACHE = {}  # term|gloss -> (url, source, page) or None; dedupes across parts
+
+
+def _img_ok(url: str) -> bool:
+    """Reject document scans and non-images before trusting a search hit.
+
+    Commons renders PDF/DjVu page scans as `...pdf.jpg` thumbnails — those are the
+    magazine/newspaper false positives that a naive English fallback returns, so a
+    plain `.pdf` check removes them.
+    """
+    u = url.lower()
+    return u.startswith("http") and ".pdf" not in u
+
+
+def _commons(query, timeout):
+    import requests
+    r = requests.get(
+        "https://commons.wikimedia.org/w/api.php",
+        params={
+            "action": "query", "format": "json", "generator": "search",
+            "gsrnamespace": 6, "gsrsearch": query, "gsrlimit": 5,
+            "prop": "imageinfo", "iiprop": "url", "iiurlwidth": 360,
+        }, headers=_IMG_UA, timeout=timeout)
+    pages = (r.json().get("query", {}) or {}).get("pages", {}) or {}
+    for p in sorted(pages.values(), key=lambda p: p.get("index", 999)):
+        ii = (p.get("imageinfo") or [{}])[0]
+        thumb, page = ii.get("thumburl"), ii.get("descriptionurl")
+        if thumb and _img_ok(thumb):
+            return thumb, "Wikimedia Commons", page or thumb
+    return None
+
+
+def _openverse(query, timeout):
+    import requests
+    r = requests.get(
+        "https://api.openverse.org/v1/images/",
+        params={"q": query, "page_size": 5}, headers=_IMG_UA, timeout=timeout)
+    for d in r.json().get("results", []) or []:
+        thumb = d.get("thumbnail") or d.get("url")
+        if thumb and _img_ok(thumb):
+            page = d.get("foreign_landing_url") or d.get("url") or thumb
+            return thumb, (d.get("source") or "Openverse"), page
+    return None
+
+
+def _resolve_image(term, gloss, timeout=10.0):
+    """Return (url, source, page) for the first confident hit, else None.
+
+    Commons is tried first (high precision, and the Chinese term usually lands
+    it); Openverse is the broad fallback. The Traditional term is queried before
+    the English gloss because it disambiguates culture-specific items.
+    """
+    key = f"{term}|{gloss}"
+    if key in _IMG_CACHE:
+        return _IMG_CACHE[key]
+    queries = [q for q in (term, gloss) if q]
+    result = None
+    try:
+        for source in (_commons, _openverse):
+            for q in queries:
+                result = source(q, timeout)
+                if result:
+                    break
+            if result:
+                break
+    except Exception:
+        result = None  # network down / sandbox block / bad JSON / no requests → skip
+    _IMG_CACHE[key] = result
+    return result
+
+
+def embed_images(markdown: str, max_images: int = 3) -> str:
+    """Replace {{IMG|term|gloss}} markers with real Markdown images.
+
+    Each marker resolves to a Wikimedia Commons / Openverse photo plus a small
+    attribution caption; markers with no confident match — or any past the
+    per-guide cap — are removed. Emits plain `![alt](url)` markdown, which
+    Obsidian renders directly and the email routine converts to <img>.
+    Idempotent: a second pass finds no markers and is a no-op.
+    """
+    used = 0
+
+    def repl(m):
+        nonlocal used
+        term, gloss = m.group(1).strip(), m.group(2).strip()
+        if used >= max_images:
+            return ""
+        hit = _resolve_image(term, gloss)
+        if not hit:
+            return ""
+        used += 1
+        url, source, page = hit
+        alt = f"{term} — {gloss}" if gloss else term
+        return f"![{alt}]({url})\n*image: [{source}]({page})*"
+
+    return _IMG_MARKER.sub(repl, markdown)
