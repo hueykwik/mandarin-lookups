@@ -315,18 +315,70 @@ _IMG_UA = {"User-Agent": "mandarin-study-guide/1.0 (personal language study)"}
 _IMG_CACHE = {}  # term|gloss -> (url, source, page) or None; dedupes across parts
 
 
-def _img_ok(url: str) -> bool:
-    """Reject document scans and non-images before trusting a search hit.
+# Document scans and vector logos are rendered to .jpg/.png thumbnails by
+# Commons, so the extension in the *path* is what gives them away, not the
+# thumbnail's own suffix.
+_IMG_BAD_EXT = (".pdf", ".djvu", ".tif", ".tiff", ".svg")
+_IMG_STOPWORDS = {
+    "a", "an", "the", "of", "for", "with", "and", "or", "in", "on", "to",
+    "small", "large", "big", "little", "type", "style", "kind", "used", "like",
+}
 
-    Commons renders PDF/DjVu page scans as `...pdf.jpg` thumbnails — those are the
-    magazine/newspaper false positives that a naive English fallback returns, so a
-    plain `.pdf` check removes them.
+
+def _img_ok(url: str) -> bool:
+    """Reject document scans and non-photos before trusting a search hit.
+
+    Commons renders PDF/DjVu page scans as `...djvu.jpg` thumbnails — those are
+    the magazine/newspaper false positives (a 1912 pulp magazine called *The
+    Black Cat* matched "freeze-dried cat treats"), and SVGs are almost always
+    logos rather than photos of a thing.
     """
     u = url.lower()
-    return u.startswith("http") and ".pdf" not in u
+    return u.startswith("http") and not any(e in u for e in _IMG_BAD_EXT)
 
 
-def _commons(query, timeout):
+def _content_tokens(text: str) -> list[str]:
+    return [t for t in re.split(r"[^a-z0-9]+", (text or "").lower())
+            if len(t) >= 3 and t not in _IMG_STOPWORDS]
+
+
+def _stem(tok: str) -> str:
+    return tok[:-1] if len(tok) > 3 and tok.endswith("s") else tok
+
+
+def _matches_gloss(title: str, gloss: str) -> bool:
+    """True when `title` names the thing the gloss is about.
+
+    Commons full-text search has no relevance floor: it happily returns any file
+    whose description mentions *one* query word, which is how "freeze-dried cat
+    treats" landed a magazine cover on the strength of "cat". The head noun of
+    the gloss (its last content word) is the thing being illustrated, so require
+    that specific word in the file title — "cat" alone is not enough, "treats"
+    is.
+    """
+    toks = _content_tokens(gloss)
+    if not toks:
+        return False
+    title_toks = {_stem(t) for t in _content_tokens(title)}
+    if _stem(toks[-1]) in title_toks:
+        return True
+    # Glosses ending in a generic head ("...cage enclosure") would otherwise
+    # drop a good match, so two agreeing words also clear the bar. One shared
+    # word never does — that is exactly the "cat" coincidence being guarded
+    # against.
+    return len(title_toks & {_stem(t) for t in toks}) >= 2
+
+
+def _matches_term(title: str, term: str) -> bool:
+    """CJK queries only count when the title actually carries the term.
+
+    Commons matched 貓條 to a *Puss in Boots* logo through a single shared
+    character, so partial-character overlap is worthless here.
+    """
+    return bool(term) and term in (title or "")
+
+
+def _commons(query, timeout, accept):
     import requests
     r = requests.get(
         "https://commons.wikimedia.org/w/api.php",
@@ -339,42 +391,56 @@ def _commons(query, timeout):
     for p in sorted(pages.values(), key=lambda p: p.get("index", 999)):
         ii = (p.get("imageinfo") or [{}])[0]
         thumb, page = ii.get("thumburl"), ii.get("descriptionurl")
-        if thumb and _img_ok(thumb):
+        title = re.sub(r"^File:", "", p.get("title") or "")
+        if thumb and _img_ok(thumb) and accept(title):
             return thumb, "Wikimedia Commons", page or thumb
     return None
 
 
-def _openverse(query, timeout):
+def _openverse(query, timeout, accept):
     import requests
     r = requests.get(
         "https://api.openverse.org/v1/images/",
         params={"q": query, "page_size": 5}, headers=_IMG_UA, timeout=timeout)
     for d in r.json().get("results", []) or []:
         thumb = d.get("thumbnail") or d.get("url")
-        if thumb and _img_ok(thumb):
+        tags = " ".join(t.get("name", "") for t in (d.get("tags") or [])
+                        if isinstance(t, dict))
+        title = f"{d.get('title') or ''} {tags}"
+        if thumb and _img_ok(thumb) and accept(title):
             page = d.get("foreign_landing_url") or d.get("url") or thumb
             return thumb, (d.get("source") or "Openverse"), page
     return None
 
 
 def _resolve_image(term, gloss, timeout=10.0):
-    """Return (url, source, page) for the first confident hit, else None.
+    """Return (url, source, page) for the first hit that survives the relevance
+    gate, else None.
 
-    Commons is tried first (high precision, and the Chinese term usually lands
-    it); Openverse is the broad fallback. The Traditional term is queried before
-    the English gloss because it disambiguates culture-specific items.
+    Openverse goes first: it indexes CC-licensed *photographs*, while Commons is
+    a mixed archive where book scans and film logos outrank the actual object.
+    The English gloss is queried before the Traditional term because both APIs
+    are English-indexed — the CJK term is a long-shot pass at culture-specific
+    items, and only counts when it appears in the file's own title.
+
+    Every candidate is checked against the query before it is returned; a marker
+    with no relevant match resolves to nothing, which drops the image. No image
+    beats a wrong image in a study guide.
     """
     key = f"{term}|{gloss}"
     if key in _IMG_CACHE:
         return _IMG_CACHE[key]
-    queries = [q for q in (term, gloss) if q]
+    attempts = []
+    if gloss:
+        gate = lambda title: _matches_gloss(title, gloss)  # noqa: E731
+        attempts += [(_openverse, gloss, gate), (_commons, gloss, gate)]
+    if term:
+        gate = lambda title: _matches_term(title, term)  # noqa: E731
+        attempts += [(_commons, term, gate), (_openverse, term, gate)]
     result = None
     try:
-        for source in (_commons, _openverse):
-            for q in queries:
-                result = source(q, timeout)
-                if result:
-                    break
+        for source, query, accept in attempts:
+            result = source(query, timeout, accept)
             if result:
                 break
     except Exception:
