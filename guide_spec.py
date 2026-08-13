@@ -85,8 +85,22 @@ The marker is replaced later with a real photo, or removed if none is found, so:
   Contextual Notes and/or in the Key Vocabulary entries.
 - NEVER emit one for abstract words, feelings, qualities, states, verbs, or grammar —
   anything a photo would not clarify (e.g. 心態, 糾結, 算是, 體驗). When unsure, omit.
-- At most 3 markers in the whole guide; pick the items where a picture helps most.
-  One marker per item, never repeat an item."""
+- Judge the SENSE USED IN THIS SEGMENT, not the word's literal meaning. Many abstract
+  terms are named after physical objects, and a photo of the object teaches the
+  listener nothing about the sense they just heard. If the speaker is using the word
+  figuratively, metaphorically, idiomatically, or as a domain term, omit the marker
+  even though the word names something photographable:
+    - 槓桿 in a stock-market segment = financial leverage → NO marker. A photo of a
+      lever and fulcrum illustrates the etymology, not what the speaker meant.
+    - 子彈 in "手上要留點子彈" = cash held in reserve → NO marker. A photo of
+      ammunition illustrates the vehicle of the metaphor, not the meaning.
+    - 中央廚房 in a segment about how a restaurant chain actually operates = a real
+      commissary kitchen → marker is fine, the speaker means the physical place.
+- A gloss you can only write by reaching for "diagram", "concept", "symbol",
+  "metaphor", or "illustration of" is telling you there is no photo of this thing.
+  Omit the marker instead of writing that gloss.
+- At most 3 markers in THIS segment; pick the items where a picture helps most.
+  One marker per item, never repeat an item within the segment."""
 
 
 # ---------------------------------------------------------------------------
@@ -312,7 +326,8 @@ def annotate_synonym_levels(markdown: str) -> str:
 
 _IMG_MARKER = re.compile(r'\{\{IMG\s*\|\s*([^|{}]+?)\s*\|\s*([^{}]*?)\s*\}\}')
 _IMG_UA = {"User-Agent": "mandarin-study-guide/1.0 (personal language study)"}
-_IMG_CACHE = {}  # term|gloss -> (url, source, page) or None; dedupes across parts
+_IMG_CACHE = {}  # term|gloss -> (url, source, page) or None; dedupes lookups across parts
+_IMG_EMBEDDED = set()  # terms already illustrated this run; one photo per term per guide
 
 
 # Document scans and vector logos are rendered to .jpg/.png thumbnails by
@@ -437,15 +452,19 @@ def _resolve_image(term, gloss, timeout=10.0):
     if term:
         gate = lambda title: _matches_term(title, term)  # noqa: E731
         attempts += [(_commons, term, gate), (_openverse, term, gate)]
-    result = None
-    try:
-        for source, query, accept in attempts:
+    result, failed = None, False
+    for source, query, accept in attempts:
+        try:
             result = source(query, timeout, accept)
-            if result:
-                break
-    except Exception:
-        result = None  # network down / sandbox block / bad JSON / no requests → skip
-    _IMG_CACHE[key] = result
+        except Exception:
+            failed = True  # network down / rate limit / bad JSON / no requests
+            continue       # a blip on one source must not veto the others
+        if result:
+            break
+    # Only remember a genuine "searched everywhere, found nothing". Caching a
+    # rate-limited miss would drop that image from every later segment too.
+    if result or not failed:
+        _IMG_CACHE[key] = result
     return result
 
 
@@ -454,21 +473,27 @@ def embed_images(markdown: str, max_images: int = 3) -> str:
 
     Each marker resolves to a Wikimedia Commons / Openverse photo plus a small
     attribution caption; markers with no confident match — or any past the
-    per-guide cap — are removed. Emits plain `![alt](url)` markdown, which
+    per-segment cap — are removed. Emits plain `![alt](url)` markdown, which
     Obsidian renders directly and the email routine converts to <img>.
     Idempotent: a second pass finds no markers and is a no-op.
+
+    `max_images` is per call, i.e. per segment, because each segment of a long
+    guide is a separate model call that cannot see the others. Cross-segment
+    repeats are suppressed here instead: a term illustrated in part 5 is not
+    illustrated again in part 7 of the same run.
     """
     used = 0
 
     def repl(m):
         nonlocal used
         term, gloss = m.group(1).strip(), m.group(2).strip()
-        if used >= max_images:
+        if used >= max_images or term in _IMG_EMBEDDED:
             return ""
         hit = _resolve_image(term, gloss)
         if not hit:
             return ""
         used += 1
+        _IMG_EMBEDDED.add(term)
         url, source, page = hit
         alt = f"{term} — {gloss}" if gloss else term
         return f"![{alt}]({url})\n*image: [{source}]({page})*"
