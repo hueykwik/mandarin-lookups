@@ -26,10 +26,10 @@ PRIMARY SOURCES — Google News RSS. Reliable from this sandbox. URL-encode any 
 - Top headlines (Simplified): https://news.google.com/rss?hl=zh-CN&gl=CN&ceid=CN:zh-Hans
   · variant: simp · label: Google 新闻 (简体头条)
 - Topic search (Traditional): https://news.google.com/rss/search?q={ENCODED}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant
-  · Build q from these terms joined by OR: 人工智能 OR AI OR 健康 OR 醫療 OR 台灣 OR 美國 OR 咖啡 OR 美食 OR 科學 OR 研究 OR 運動 OR 體育 OR 網球 OR 籃球 OR 棒球
+  · Build q from these terms joined by OR: 人工智能 OR AI OR 健康 OR 醫療 OR 台灣 OR 美國 OR 咖啡 OR 美食 OR 科學 OR 研究 OR 運動 OR 體育 OR 網球 OR 籃球
   · variant: trad · label: Google 新聞 (繁體主題)
 - Topic search (Simplified): https://news.google.com/rss/search?q={ENCODED}&hl=zh-CN&gl=CN&ceid=CN:zh-Hans
-  · Build q from these terms joined by OR: 人工智能 OR AI OR 健康 OR 医疗 OR 台湾 OR 美国 OR 咖啡 OR 美食 OR 科学 OR 研究 OR 运动 OR 体育 OR 网球 OR 篮球 OR 棒球
+  · Build q from these terms joined by OR: 人工智能 OR AI OR 健康 OR 医疗 OR 台湾 OR 美国 OR 咖啡 OR 美食 OR 科学 OR 研究 OR 运动 OR 体育 OR 网球 OR 篮球
   · variant: simp · label: Google 新闻 (简体主题)
 
 SECONDARY SOURCES — attempt ONLY if Google News yielded zero candidates after Step 2's pre-filter. These often return HTTP 403 from this sandbox; treat failures as expected and continue:
@@ -51,13 +51,22 @@ Keep only entries whose title or summary contains at least one keyword from thes
 - Taiwan society: 台灣, 台湾, 台北, 高雄, 民進黨, 民进党, 國民黨, 国民党, 立法院, 行政院, 總統, 总统, 賴清德, 社會議題, 社会议题, 勞工, 劳工, 房價, 房价, 少子化, 移民, 教育政策
 - society/culture: 婚姻, 離婚, 离婚, 戀愛, 恋爱, 家庭, 性別, 性别, LGBTQ, 同婚, 女性, 職場, 职场, 世代, 文化, 電影, 电影, 音樂, 音乐, 藝術, 艺术, 閱讀, 阅读
 - coffee: 咖啡, 咖啡豆, 拿鐵, 拿铁, 手沖, 手冲, espresso, 義式, 咖啡館, 咖啡馆, 咖啡師, 咖啡师, 精品咖啡, 冷萃
-- sports: 運動, 运动, 體育, 体育, 賽事, 赛事, 比賽, 比赛, 選手, 选手, 球員, 球员, 冠軍, 冠军, 聯賽, 联赛, 奧運, 奥运, 世界盃, 世界杯, 教練, 教练, 網球, 网球, 羽球, 羽毛球, 桌球, 乒乓球, 籃球, 篮球, NBA, 棒球, 職棒, 职棒, 大聯盟, 大联盟, MLB, 足球, 高爾夫, 高尔夫, 馬拉松, 马拉松, 健身
+- sports: 運動, 运动, 體育, 体育, 賽事, 赛事, 比賽, 比赛, 選手, 选手, 球員, 球员, 冠軍, 冠军, 聯賽, 联赛, 奧運, 奥运, 世界盃, 世界杯, 教練, 教练, 網球, 网球, 羽球, 羽毛球, 桌球, 乒乓球, 籃球, 篮球, NBA, 足球, 高爾夫, 高尔夫, 馬拉松, 马拉松, 健身
 - pickleball: 匹克球, 皮克球, pickleball
 - hawaii: 夏威夷, Hawaii, 檀香山, 火奴魯魯, 火奴鲁鲁
 - US politics: 美國政治, 美国政治, 川普, 特朗普, 拜登, 哈里斯, 賀錦麗, 國會, 国会, 共和黨, 共和党, 民主黨, 民主党, 白宮, 白宫, 選舉, 选举, 參議院, 参议院, 眾議院, 众议院, 美國總統, 美国总统, 國務院, 国务院, 關稅, 关税, 制裁
 - food: 美食, 餐廳, 餐厅, 料理, 食譜, 食谱, 小吃, 飲食, 饮食, 廚師, 厨师, 烹飪, 烹饪, 米其林, 夜市, 拉麵, 拉面
 
 Match is substring-based and case-insensitive for ASCII portions.
+
+**Topic exclusions.** Some topics have a veto list. If any veto term appears in the
+title or summary, that topic does NOT count as a match — even when other keywords
+from the group are present. The article still survives on any *other* topic it
+matched, so a story about the economics of a stadium deal is kept for its business
+angle while a game recap is dropped.
+
+- sports vetoes: 棒球, 職棒, 职棒, 大聯盟, 大联盟, MLB, 中華職棒, 中华职棒, 世界棒球, 經典賽, 经典赛
+  (Huey isn't interested in baseball. General sports coverage stays.)
 
 ## Step 2.5 — Recency memory (avoid repeating recent topics)
 
