@@ -61,49 +61,6 @@ Rules for the near-synonym block:
 
 
 # ---------------------------------------------------------------------------
-# Illustrative-image marker sub-spec (embedded in the blueprint below).
-# The model only TAGS items; embed_images() resolves markers to real photos.
-# ---------------------------------------------------------------------------
-
-IMAGE_MARKER_RULES = """\
-### Image markers (concrete, visual items only)
-
-Some items are best understood by seeing them. For those — and ONLY those — emit an
-image marker on its OWN line, immediately after the entry it illustrates:
-
-    {{IMG|傳統字詞|short english gloss}}
-
-for example:  {{IMG|龍鬚糖|dragon's beard candy}}
-
-The marker is replaced later with a real photo, or removed if none is found, so:
-- First field = the Traditional term; second field = a short concrete English gloss.
-  Both are used as image-search queries, so make the gloss specific (a night-market
-  food, not just "candy").
-- Emit a marker ONLY for concrete, visually distinctive, usually culture-specific
-  things: foods and dishes, physical objects and tools, games and activities, places
-  and landmarks, animals, plants, garments. These may appear in the Cultural &
-  Contextual Notes and/or in the Key Vocabulary entries.
-- NEVER emit one for abstract words, feelings, qualities, states, verbs, or grammar —
-  anything a photo would not clarify (e.g. 心態, 糾結, 算是, 體驗). When unsure, omit.
-- Judge the SENSE USED IN THIS SEGMENT, not the word's literal meaning. Many abstract
-  terms are named after physical objects, and a photo of the object teaches the
-  listener nothing about the sense they just heard. If the speaker is using the word
-  figuratively, metaphorically, idiomatically, or as a domain term, omit the marker
-  even though the word names something photographable:
-    - 槓桿 in a stock-market segment = financial leverage → NO marker. A photo of a
-      lever and fulcrum illustrates the etymology, not what the speaker meant.
-    - 子彈 in "手上要留點子彈" = cash held in reserve → NO marker. A photo of
-      ammunition illustrates the vehicle of the metaphor, not the meaning.
-    - 中央廚房 in a segment about how a restaurant chain actually operates = a real
-      commissary kitchen → marker is fine, the speaker means the physical place.
-- A gloss you can only write by reaching for "diagram", "concept", "symbol",
-  "metaphor", or "illustration of" is telling you there is no photo of this thing.
-  Omit the marker instead of writing that gloss.
-- At most 3 markers in THIS segment; pick the items where a picture helps most.
-  One marker per item, never repeat an item within the segment."""
-
-
-# ---------------------------------------------------------------------------
 # The blueprint. __SLOTS__ are filled by render_spec via str.replace (no .format,
 # so literal braces in examples are safe).
 # ---------------------------------------------------------------------------
@@ -122,10 +79,6 @@ Taiwan-oriented (or vice versa), put cross-strait register notes here.
 - **{term in characters}** ({pinyin}): 1–2 sentence English explanation — only for
   terms whose meaning relies on context the __SOURCE__ assumes.
 - … (3–6 bullets, only as many as actually useful)
-
-For any bullet naming a concrete, visually distinctive item (a food, object, place,
-game, garment), add an image marker on its own line right under that bullet — see
-"Image markers" in the Key Vocabulary section below.
 
 ---
 
@@ -147,8 +100,6 @@ in the table — do not guess from your own knowledge.
 "—" for any word not in the table.
 
 __NEAR_SYNONYM_RULES__
-
-__IMAGE_RULES__
 
 ### Words Used in Unexpected Senses
 
@@ -248,7 +199,6 @@ def render_spec(
     return (
         _BLUEPRINT
         .replace("__NEAR_SYNONYM_RULES__", NEAR_SYNONYM_RULES)
-        .replace("__IMAGE_RULES__", IMAGE_MARKER_RULES)
         .replace("__VOCAB_TARGET__", vocab_target)
         .replace("__GRAMMAR_TARGET__", grammar_target)
         .replace("__SOURCE_QUOTE__", source_quote)
@@ -318,184 +268,22 @@ def annotate_synonym_levels(markdown: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Illustrative images: resolve {{IMG|term|gloss}} markers to real photo URLs.
-# Sources: Wikimedia Commons (precise) then Openverse (broad) — no API key.
-# Fails safe: any network/import/parse error, or no confident match, drops the
-# marker so a guide never ships a broken image or a leftover token.
+# Legacy image markers.
+#
+# Guides used to embed photos resolved from Wikimedia Commons / Openverse via
+# {{IMG|term|gloss}} markers. The images were rarely worth their space — an
+# abstract term would be illustrated with a photo of whatever object it was
+# named after — so the blueprint no longer asks for them. This stripper stays
+# as a safety net: if a model emits a marker out of habit, it is removed rather
+# than shipped as a raw {{IMG|...}} token in the middle of a study guide.
 # ---------------------------------------------------------------------------
 
 _IMG_MARKER = re.compile(r'\{\{IMG\s*\|\s*([^|{}]+?)\s*\|\s*([^{}]*?)\s*\}\}')
-_IMG_UA = {"User-Agent": "mandarin-study-guide/1.0 (personal language study)"}
-_IMG_CACHE = {}  # term|gloss -> (url, source, page) or None; dedupes lookups across parts
-_IMG_EMBEDDED = set()  # terms already illustrated this run; one photo per term per guide
 
 
-# Document scans and vector logos are rendered to .jpg/.png thumbnails by
-# Commons, so the extension in the *path* is what gives them away, not the
-# thumbnail's own suffix.
-_IMG_BAD_EXT = (".pdf", ".djvu", ".tif", ".tiff", ".svg")
-_IMG_STOPWORDS = {
-    "a", "an", "the", "of", "for", "with", "and", "or", "in", "on", "to",
-    "small", "large", "big", "little", "type", "style", "kind", "used", "like",
-}
+def strip_image_markers(markdown: str) -> str:
+    """Remove any leftover {{IMG|term|gloss}} markers, including a trailing newline.
 
-
-def _img_ok(url: str) -> bool:
-    """Reject document scans and non-photos before trusting a search hit.
-
-    Commons renders PDF/DjVu page scans as `...djvu.jpg` thumbnails — those are
-    the magazine/newspaper false positives (a 1912 pulp magazine called *The
-    Black Cat* matched "freeze-dried cat treats"), and SVGs are almost always
-    logos rather than photos of a thing.
+    Idempotent: text with no markers is returned unchanged.
     """
-    u = url.lower()
-    return u.startswith("http") and not any(e in u for e in _IMG_BAD_EXT)
-
-
-def _content_tokens(text: str) -> list[str]:
-    return [t for t in re.split(r"[^a-z0-9]+", (text or "").lower())
-            if len(t) >= 3 and t not in _IMG_STOPWORDS]
-
-
-def _stem(tok: str) -> str:
-    return tok[:-1] if len(tok) > 3 and tok.endswith("s") else tok
-
-
-def _matches_gloss(title: str, gloss: str) -> bool:
-    """True when `title` names the thing the gloss is about.
-
-    Commons full-text search has no relevance floor: it happily returns any file
-    whose description mentions *one* query word, which is how "freeze-dried cat
-    treats" landed a magazine cover on the strength of "cat". The head noun of
-    the gloss (its last content word) is the thing being illustrated, so require
-    that specific word in the file title — "cat" alone is not enough, "treats"
-    is.
-    """
-    toks = _content_tokens(gloss)
-    if not toks:
-        return False
-    title_toks = {_stem(t) for t in _content_tokens(title)}
-    if _stem(toks[-1]) in title_toks:
-        return True
-    # Glosses ending in a generic head ("...cage enclosure") would otherwise
-    # drop a good match, so two agreeing words also clear the bar. One shared
-    # word never does — that is exactly the "cat" coincidence being guarded
-    # against.
-    return len(title_toks & {_stem(t) for t in toks}) >= 2
-
-
-def _matches_term(title: str, term: str) -> bool:
-    """CJK queries only count when the title actually carries the term.
-
-    Commons matched 貓條 to a *Puss in Boots* logo through a single shared
-    character, so partial-character overlap is worthless here.
-    """
-    return bool(term) and term in (title or "")
-
-
-def _commons(query, timeout, accept):
-    import requests
-    r = requests.get(
-        "https://commons.wikimedia.org/w/api.php",
-        params={
-            "action": "query", "format": "json", "generator": "search",
-            "gsrnamespace": 6, "gsrsearch": query, "gsrlimit": 5,
-            "prop": "imageinfo", "iiprop": "url", "iiurlwidth": 360,
-        }, headers=_IMG_UA, timeout=timeout)
-    pages = (r.json().get("query", {}) or {}).get("pages", {}) or {}
-    for p in sorted(pages.values(), key=lambda p: p.get("index", 999)):
-        ii = (p.get("imageinfo") or [{}])[0]
-        thumb, page = ii.get("thumburl"), ii.get("descriptionurl")
-        title = re.sub(r"^File:", "", p.get("title") or "")
-        if thumb and _img_ok(thumb) and accept(title):
-            return thumb, "Wikimedia Commons", page or thumb
-    return None
-
-
-def _openverse(query, timeout, accept):
-    import requests
-    r = requests.get(
-        "https://api.openverse.org/v1/images/",
-        params={"q": query, "page_size": 5}, headers=_IMG_UA, timeout=timeout)
-    for d in r.json().get("results", []) or []:
-        thumb = d.get("thumbnail") or d.get("url")
-        tags = " ".join(t.get("name", "") for t in (d.get("tags") or [])
-                        if isinstance(t, dict))
-        title = f"{d.get('title') or ''} {tags}"
-        if thumb and _img_ok(thumb) and accept(title):
-            page = d.get("foreign_landing_url") or d.get("url") or thumb
-            return thumb, (d.get("source") or "Openverse"), page
-    return None
-
-
-def _resolve_image(term, gloss, timeout=10.0):
-    """Return (url, source, page) for the first hit that survives the relevance
-    gate, else None.
-
-    Openverse goes first: it indexes CC-licensed *photographs*, while Commons is
-    a mixed archive where book scans and film logos outrank the actual object.
-    The English gloss is queried before the Traditional term because both APIs
-    are English-indexed — the CJK term is a long-shot pass at culture-specific
-    items, and only counts when it appears in the file's own title.
-
-    Every candidate is checked against the query before it is returned; a marker
-    with no relevant match resolves to nothing, which drops the image. No image
-    beats a wrong image in a study guide.
-    """
-    key = f"{term}|{gloss}"
-    if key in _IMG_CACHE:
-        return _IMG_CACHE[key]
-    attempts = []
-    if gloss:
-        gate = lambda title: _matches_gloss(title, gloss)  # noqa: E731
-        attempts += [(_openverse, gloss, gate), (_commons, gloss, gate)]
-    if term:
-        gate = lambda title: _matches_term(title, term)  # noqa: E731
-        attempts += [(_commons, term, gate), (_openverse, term, gate)]
-    result, failed = None, False
-    for source, query, accept in attempts:
-        try:
-            result = source(query, timeout, accept)
-        except Exception:
-            failed = True  # network down / rate limit / bad JSON / no requests
-            continue       # a blip on one source must not veto the others
-        if result:
-            break
-    # Only remember a genuine "searched everywhere, found nothing". Caching a
-    # rate-limited miss would drop that image from every later segment too.
-    if result or not failed:
-        _IMG_CACHE[key] = result
-    return result
-
-
-def embed_images(markdown: str, max_images: int = 3) -> str:
-    """Replace {{IMG|term|gloss}} markers with real Markdown images.
-
-    Each marker resolves to a Wikimedia Commons / Openverse photo plus a small
-    attribution caption; markers with no confident match — or any past the
-    per-segment cap — are removed. Emits plain `![alt](url)` markdown, which
-    Obsidian renders directly and the email routine converts to <img>.
-    Idempotent: a second pass finds no markers and is a no-op.
-
-    `max_images` is per call, i.e. per segment, because each segment of a long
-    guide is a separate model call that cannot see the others. Cross-segment
-    repeats are suppressed here instead: a term illustrated in part 5 is not
-    illustrated again in part 7 of the same run.
-    """
-    used = 0
-
-    def repl(m):
-        nonlocal used
-        term, gloss = m.group(1).strip(), m.group(2).strip()
-        if used >= max_images or term in _IMG_EMBEDDED:
-            return ""
-        hit = _resolve_image(term, gloss)
-        if not hit:
-            return ""
-        used += 1
-        _IMG_EMBEDDED.add(term)
-        url, source, page = hit
-        alt = f"{term} — {gloss}" if gloss else term
-        return f"![{alt}]({url})\n*image: [{source}]({page})*"
-
-    return _IMG_MARKER.sub(repl, markdown)
+    return re.sub(r'[ \t]*' + _IMG_MARKER.pattern + r'[ \t]*\n?', '', markdown)
