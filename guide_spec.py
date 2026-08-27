@@ -157,8 +157,8 @@ Reproduce this section verbatim — do not add questions of your own:
 __SOURCE_CN__
 __SOURCE_CN_PY__
 
-*(Summarise the main points in Chinese from memory, then compare against the
-answer key at the bottom.)*
+*(Summarise the main points in Chinese from memory — out loud or written — then
+compare against the 參考答案 in the Answer Key at the bottom.)*
 
 ---
 
@@ -166,16 +166,33 @@ answer key at the bottom.)*
 
 This is the ONLY place the main points appear — there is no overview, summary, or
 key-themes section earlier in the guide, and Background & Context must not preview
-them. The reader writes their own summary first, then compares against this.
+them. The reader writes their own Chinese summary first, then compares against this.
 
-### Overview
-2–3 sentences in English on the topic and how the __SOURCE__ develops it.
+### 參考答案 (Model Answer)
+
+The centrepiece: write the summary **in Chinese**, as the answer the reader was just
+asked to produce. This is what they compare their own attempt against, so it must be
+an answer they could plausibly have written — not a display of your own range.
+
+- **4–7 sentences**, Traditional characters, spoken register — the way someone would
+  actually recap this to a friend, not a written news précis.
+- Pitch it at B2/C1: reach for the vocabulary and patterns taught in THIS guide where
+  they genuinely fit, and skip 成語 or literary constructions the reader would not use.
+- Cover the main points in the order the __SOURCE__ raises them, and name any number,
+  person, or claim the argument turns on.
+- No pinyin — the reader reads Traditional fluently and pinyin would bury the model
+  answer in clutter. Follow the Chinese with an English translation in italics.
+
+參考答案：
+> 完整的中文總結，四到七句。
+>
+> *English translation of the model answer.*
 
 ### Main Points
-4–6 bullets covering the substance the reader should have caught. Each bullet: the
-point in one sentence, plus a reference (for listening guides, a timestamp such as
-`(@ 4:32)`; for reading guides, a short 原文 quote). Include any specific number,
-name, or claim that carries the argument.
+The checklist for grading the comparison: 4–6 bullets, each one point in a single
+English sentence plus a reference (for listening guides a timestamp such as
+`(@ 4:32)`; for reading guides a short 原文 quote). A reader whose summary missed a
+bullet knows exactly where to go back to.
 
 ### Easy to Miss
 0–3 bullets: details a learner __SOURCE_VERB__ at speed most likely dropped — an
