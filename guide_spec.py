@@ -8,8 +8,9 @@ Edit the blueprint here once → both guides change.
 
 The two guides differ only in their *source* (an audio transcript segment vs a
 news article) and their *wrapper* (a .md file header vs an email header). Those
-stay guide-specific. Everything between them — Background, vocabulary, grammar,
-questions — comes from render_spec() below so the two outputs look like siblings.
+stay guide-specific. Everything between them — level, background, vocabulary,
+grammar, the summarise-it prompt and its answer key — comes from render_spec()
+below so the two outputs look like siblings.
 
 Public API:
     render_spec(source_noun, source_quote, vocab_target, grammar_target) -> str
@@ -66,19 +67,34 @@ Rules for the near-synonym block:
 # ---------------------------------------------------------------------------
 
 _BLUEPRINT = """\
+## Level
+
+- **Estimated level:** HSK ~N · TOCFL ~X _(estimated)_
+- **What makes it hard:** one line — speed, accent, register, density of domain
+  vocabulary, number of speakers, whatever actually applies to this __SOURCE__.
+- **What to focus on while __SOURCE_VERB__:** one line.
+
+---
+
 ## Background & Context
 
-2–4 short paragraphs, **written in English**, giving the reader what they need to
-understand this __SOURCE__: who the key people/orgs are, what the broader story is,
-why it matters — context a non-specialist B2/C1 reader would NOT get from the
-__SOURCE__ alone. (Chinese terms may be cited inline, but the explanation itself is
-in English.) If the __SOURCE__ is from a Mainland source and the reader is
-Taiwan-oriented (or vice versa), put cross-strait register notes here.
+The goal is a *gist*: enough for the reader to know what this __SOURCE__ is about
+before __SOURCE_VERB__, and nothing more. Write in English. Hard limits:
 
-### Cultural & Contextual Notes
-- **{term in characters}** ({pinyin}): 1–2 sentence English explanation — only for
-  terms whose meaning relies on context the __SOURCE__ assumes.
-- … (3–6 bullets, only as many as actually useful)
+- **2–4 sentences total**, not paragraphs. No scene-setting, no history lesson,
+  no restating what the __SOURCE__ itself will say.
+- **If the __SOURCE__ explains it, skip it.** Only supply context the __SOURCE__
+  assumes the audience already has.
+- Name the speakers/participants and the topic in one clause; do not profile them.
+- If the __SOURCE__ is from a Mainland source and the reader is Taiwan-oriented
+  (or vice versa), add one short register note here.
+
+### Terms Assumed, Not Explained
+- **{term in characters}** ({pinyin}): one sentence, English.
+- … 0–5 bullets. Include a term ONLY if the __SOURCE__ uses it as known background
+  and never explains it, and a B2/C1 Taiwan-oriented learner would plausibly not
+  know it. If the __SOURCE__ defines or unpacks the term itself, leave it out —
+  the reader should meet it there. Skip the whole section if nothing qualifies.
 
 ---
 
@@ -134,54 +150,49 @@ Star ratings: ★★★★★ constant in everyday Chinese · ★★★★ very 
 
 ---
 
-## Summary
+## After __SOURCE_VERB_CAP__
 
-### Overview
-2–3 sentences on the topic and main points of this __SOURCE__.
+Reproduce this section verbatim — do not add questions of your own:
 
-### Key Themes
-Bullet list of 4–6 main ideas or topics covered.
+__SOURCE_CN__
+__SOURCE_CN_PY__
 
-### Learner Notes
-- Estimated HSK level and TOCFL band for this content
-- What to focus on while __SOURCE_VERB__
-- Any particularly useful phrases for everyday conversation
-
----
-
-## Comprehension Questions (3–4 questions)
-
-Fewer but harder. Each question MUST require having actually engaged with THIS
-__SOURCE__ by __SOURCE_VERB__ — test specific details, claims, examples, or the
-chain of reasoning that appear ONLY in the source itself. A learner who skimmed
-the Vocabulary, Grammar, and Summary sections of this guide but skipped the actual
-__SOURCE_VERB__ should NOT be able to answer. Therefore: do NOT ask about anything
-already stated in the Summary/Key Themes, and do NOT ask for definitions of the
-vocab words. Favour questions that hinge on a specific stated detail, a speaker's
-stated reason or opinion, a number/name/sequence, or an inference that requires
-following the actual content. Write each in Chinese with pinyin only — no answer here.
-
-1. **Question in Chinese** (Pīnyīn)
-2. **Question in Chinese** (Pīnyīn)
-
-## Discussion Questions (4–5 questions)
-
-Open-ended questions connecting the content to the learner's own life or opinions,
-for speaking practice. Write each in Chinese with pinyin, then add 2–3 Chinese
-sentence starters to scaffold the answer.
-
-1. **Question in Chinese** (Pīnyīn)
-   *Sentence starters:* 我覺得… / 在我的經驗裡… / 我認為…
+*(Summarise the main points in Chinese from memory, then compare against the
+answer key at the bottom.)*
 
 ---
 
 ## Answer Key
 
-Answers to the Comprehension Questions above, with a brief Chinese answer and a
-paragraph/quote reference (for listening guides, include the timestamp, e.g. `(@ 4:32)`).
+This is the ONLY place the main points appear — there is no overview, summary, or
+key-themes section earlier in the guide, and Background & Context must not preview
+them. The reader writes their own summary first, then compares against this.
 
-1. Answer to question 1.
-2. Answer to question 2."""
+### Overview
+2–3 sentences in English on the topic and how the __SOURCE__ develops it.
+
+### Main Points
+4–6 bullets covering the substance the reader should have caught. Each bullet: the
+point in one sentence, plus a reference (for listening guides, a timestamp such as
+`(@ 4:32)`; for reading guides, a short 原文 quote). Include any specific number,
+name, or claim that carries the argument.
+
+### Easy to Miss
+0–3 bullets: details a learner __SOURCE_VERB__ at speed most likely dropped — an
+aside, a reversal, a stated reason behind an opinion, a joke that carries meaning."""
+
+
+# The single summarise-it question, in Chinese + pinyin, per source type.
+_SOURCE_CN = {
+    "segment": (
+        "用中文總結這一段的主要內容。講者說到哪些重點？",
+        "Yòng Zhōngwén zǒngjié zhè yí duàn de zhǔyào nèiróng. Jiǎngzhě shuō dào nǎxiē zhòngdiǎn?",
+    ),
+    "article": (
+        "用中文總結這篇文章的主要內容。作者說到哪些重點？",
+        "Yòng Zhōngwén zǒngjié zhè piān wénzhāng de zhǔyào nèiróng. Zuòzhě shuō dào nǎxiē zhòngdiǎn?",
+    ),
+}
 
 
 def render_spec(
@@ -196,9 +207,13 @@ def render_spec(
     Listening: render_spec("segment", "transcript", ..., source_verb="listening")
     Reading:   render_spec("article", "article",   ..., source_verb="reading")
     """
+    cn, cn_py = _SOURCE_CN.get(source_noun, ("內容", "nèiróng "))
     return (
         _BLUEPRINT
         .replace("__NEAR_SYNONYM_RULES__", NEAR_SYNONYM_RULES)
+        .replace("__SOURCE_VERB_CAP__", source_verb.capitalize())
+        .replace("__SOURCE_CN_PY__", cn_py)
+        .replace("__SOURCE_CN__", cn)
         .replace("__VOCAB_TARGET__", vocab_target)
         .replace("__GRAMMAR_TARGET__", grammar_target)
         .replace("__SOURCE_QUOTE__", source_quote)
