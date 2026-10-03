@@ -24,6 +24,7 @@ lookup("政府")  # {'hsk2': 4, 'hsk3': '4', 'tocfl': 'B2'}
 - `data/hsk_levels.json` — HSK 2.0 (Hanban 2010), 4,993 forms.
 - `data/tocfl_levels.json` — Taiwan TOCFL, 14,736 forms. **Note:** level 7
   is a noisy overflow bucket and is treated as unlabeled by `lookup()`.
+- `data/songs.json` — curated pool of popular Mandarin songs for song day.
 - `data/cedict_ts.u8` — [CC-CEDICT](https://cc-cedict.org/), used only to
   build a Traditional ↔ Simplified normalization map. Licensed CC BY-SA 4.0.
 
@@ -35,6 +36,11 @@ lookup("政府")  # {'hsk2': 4, 'hsk3': '4', 'tocfl': 'B2'}
   repo, reads this file, and follows it — so edit the prompt **here**, commit,
   and the next run picks it up (no pasting into the routine UI). Topic keywords
   and Google News query terms live in Steps 1–2 of that file.
+- `routines/song_guide.md` — the **song-day** variant. On Sundays (HST), or when
+  a run is fired with "song", the reading brief hands off here and builds the
+  same study guide around the lyrics of a song from `data/songs.json`, emailed
+  as `今日中文歌曲 {date}`. Songs already sent are skipped. Edit
+  `data/songs.json` to change the pool.
 
 ## License
 

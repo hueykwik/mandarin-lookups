@@ -209,6 +209,10 @@ _SOURCE_CN = {
         "用中文總結這篇文章的主要內容。作者說到哪些重點？",
         "Yòng Zhōngwén zǒngjié zhè piān wénzhāng de zhǔyào nèiróng. Zuòzhě shuō dào nǎxiē zhòngdiǎn?",
     ),
+    "song": (
+        "用中文說說這首歌在講什麼。歌詞想表達什麼樣的心情？",
+        "Yòng Zhōngwén shuōshuo zhè shǒu gē zài jiǎng shénme. Gēcí xiǎng biǎodá shénmeyàng de xīnqíng?",
+    ),
 }
 
 
@@ -223,6 +227,7 @@ def render_spec(
 
     Listening: render_spec("segment", "transcript", ..., source_verb="listening")
     Reading:   render_spec("article", "article",   ..., source_verb="reading")
+    Song:      render_spec("song",    "lyrics",    ..., source_verb="listening")
     """
     cn, cn_py = _SOURCE_CN.get(source_noun, ("內容", "nèiróng "))
     return (
