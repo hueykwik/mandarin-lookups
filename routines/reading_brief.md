@@ -1,5 +1,5 @@
 <!--
-LAST-UPDATED: 2026-10-03
+LAST-UPDATED: 2026-10-08
 This file is the single source of truth for the daily Mandarin reading-brief
 cloud routine. The Claude Code routine config is just a bootstrap that clones
 this repo and follows this file — so edit HERE, commit, and the next run picks
@@ -42,6 +42,25 @@ PRIMARY SOURCES — Google News RSS. Reliable from this sandbox. URL-encode any 
 - Topic search (Simplified): https://news.google.com/rss/search?q={ENCODED}&hl=zh-CN&gl=CN&ceid=CN:zh-Hans
   · Build q from these terms joined by OR: 人工智能 OR AI OR 健康 OR 医疗 OR 台湾 OR 美国 OR 咖啡 OR 美食 OR 科学 OR 研究 OR 运动 OR 体育 OR 网球 OR 篮球
   · variant: simp · label: Google 新闻 (简体主题)
+
+OPINION SOURCES — the four feeds above return reported news almost exclusively,
+which is why briefs skew toward event coverage. These two feeds exist to surface
+argument-driven writing (社論, 專欄, 投書, 觀點): essays that take a position,
+which carry the concessive/hedging/stance grammar that straight news reporting
+does not. Fetch them on EVERY run, alongside the news feeds — not as a fallback.
+
+- Opinion, site-scoped (Traditional): https://news.google.com/rss/search?q={ENCODED}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant
+  · Build q as: site:opinion.cw.com.tw OR site:opinion.udn.com OR site:storm.mg OR site:thenewslens.com
+  · variant: trad · label: 繁體評論
+- Opinion, site-scoped (Simplified): https://news.google.com/rss/search?q={ENCODED}&hl=zh-CN&gl=CN&ceid=CN:zh-Hans
+  · Build q as: site:cn.nytimes.com OR site:ftchinese.com OR site:thepaper.cn
+  · variant: simp · label: 简体评论
+
+Routing opinion platforms through Google News rather than hitting their own RSS
+is deliberate: direct feeds from this sandbox have a history of HTTP 403, while
+the Google News pipe is reliable. If a site: query returns nothing, that is a
+normal outcome for the day — log it and continue; do NOT fall back to scraping
+the site directly.
 
 SECONDARY SOURCES — attempt ONLY if Google News yielded zero candidates after Step 2's pre-filter. These often return HTTP 403 from this sandbox; treat failures as expected and continue:
 
@@ -86,16 +105,44 @@ sent Gmail as the durable history store.
 
 1. Via Gmail MCP, search sent mail: from:me subject:(今日中文閱讀) newer_than:8d
    Retrieve up to the 7 most recent briefs.
-2. From each, extract: the article title (first `## ` heading) and the
-   topic groups (the `**主題：**` line).
+2. From each, extract: the article title (first `## ` heading), the
+   topic groups (the `**主題：**` line) and the genre (the `**類型：**` line).
 3. Build:
    - recent_topics: each topic group → how many of the last 7 briefs hit it.
    - recent_entities: the 1–3 most salient proper nouns per recent title
      (companies/people/places). Normalize variants to ONE entity, e.g.
      NVIDIA = 輝達 = 英伟达 = 黃仁勳/Jensen Huang stories all count as the
      "NVIDIA" entity; 台積電 = TSMC; etc.
+   - recent_genres: the genre of each of the last 7 briefs, newest first.
+     Briefs sent before the 類型 field existed have no genre line — count
+     those as `news`, which is what they were.
 4. If Gmail search fails, proceed with empty memory and add a footer note:
    `_Note: recency memory unavailable this run._`
+
+## Step 2.75 — Classify genre (opinion vs news)
+
+Tag every surviving candidate as `opinion` or `news`. Step 4 uses this to keep the
+two genres in balance, so classify from the title, summary and URL — this happens
+BEFORE the full body is fetched in Step 4.25.
+
+Mark a candidate `opinion` if ANY of these holds:
+
+1. **URL path** contains any of: `/opinion`, `/opinions`, `/comment`, `/commentary`,
+   `/column`, `/columns`, `/editorial`, `/forum`, `/views`, `/pinglun`, `/sixiang`,
+   `鳴人堂`, `專欄`, `评论`, `观点`. This is the strongest and most reliable signal —
+   trust it over the text heuristics below.
+2. **Known opinion platform or section**: 天下獨立評論 (opinion.cw.com.tw),
+   聯合報 鳴人堂 / 民意論壇 (opinion.udn.com), 風傳媒 評論, 關鍵評論網,
+   紐約時報中文網 觀點 (cn.nytimes.com), FT中文網 專欄, 澎湃 思想市場 / 馬上評.
+3. **Title carries a stance marker**: 社論, 短評, 時評/时评, 投書/投书, 專欄/专栏,
+   觀點/观点, 我認為/我认为, 該不該/该不该, 為何/为何, 是否應/是否应, 別再/别再,
+   憑什麼/凭什么, or a rhetorical question addressed to the reader.
+
+Otherwise tag it `news`.
+
+**Do not tag on the bare word 評論/评论 appearing in a summary.** News reports
+routinely quote someone "評論說…", which is reporting, not commentary. Require a
+URL-path, platform, or title-level signal from the list above.
 
 ## Step 3 — Difficulty rating
 
@@ -109,18 +156,29 @@ HARD FILTERS (apply BEFORE tiebreakers, using Step 2.5 memory):
   days, no NVIDIA/Jensen Huang today.)
 - Topic cooldown: if one topic group was primary in BOTH of the last 2
   briefs, exclude candidates whose ONLY match is that group.
+- Genre balance: if BOTH of the last 2 briefs were `news` and at least one
+  `opinion` candidate survived the filters above, you MUST pick an opinion
+  candidate today. This is the rule that actually shifts the mix — a soft
+  preference alone loses to topic novelty almost every day, because opinion
+  candidates are a small minority of what the feeds return.
 
 TIEBREAKERS, in order:
 1. Topic-group novelty: prefer a candidate whose primary topic group has NOT
    appeared in the last 3 briefs; then prefer the least-covered group over
    the trailing 7.
-2. More topic-group matches > fewer.
-3. Variant variety: odd HST day-of-month → prefer Trad on ties; even → Simp.
-4. Topic-search results over top-headline; then publisher order:
+2. Genre novelty: prefer the genre that is under-represented in recent_genres
+   (over the trailing 7, target ≥3 opinion). On a true tie, prefer opinion.
+3. More topic-group matches > fewer.
+4. Variant variety: odd HST day-of-month → prefer Trad on ties; even → Simp.
+5. Topic-search and opinion results over top-headline; then publisher order:
+   天下獨立評論 > 鳴人堂/民意論壇 > 紐約時報中文網 > FT中文網 > 關鍵評論網 >
    BBC 中文 > 中央社 > 自由時報 > ETtoday > 风传媒 > 联合早报 > 澎湃新闻 > 36氪 > any other.
 
-Weekly goal: across any 7 briefs, cover ≥4 distinct topic groups and never
-the same dominant entity more than twice.
+Weekly goal: across any 7 briefs, cover ≥4 distinct topic groups, never the
+same dominant entity more than twice, and **at least 3 of 7 tagged `opinion`**.
+If a week runs all-news because opinion candidates keep failing the topic
+pre-filter, say so in the footer rather than silently reverting to news-only:
+`_Note: no opinion candidates cleared the topic filter this run._`
 
 If de-dup eliminates ALL candidates, relax the entity cooldown to "last 1
 brief"; if still empty, pick the best candidate and prepend:
@@ -181,6 +239,7 @@ Assemble the email body as:
     # 今日中文閱讀 {YYYY-MM-DD}
     ## {article title} [{Trad|Simp}]
     **來源：** {source label} · **主題：** {topics joined by ' · '}
+    **類型：** {評論 if genre == opinion else 新聞}
     **連結：** {article URL}
     **摘要：** {2-sentence Chinese summary, SAME character set as the article}
     ---
