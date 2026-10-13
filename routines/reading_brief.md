@@ -1,5 +1,5 @@
 <!--
-LAST-UPDATED: 2026-10-08
+LAST-UPDATED: 2026-10-13
 This file is the single source of truth for the daily Mandarin reading-brief
 cloud routine. The Claude Code routine config is just a bootstrap that clones
 this repo and follows this file — so edit HERE, commit, and the next run picks
@@ -13,11 +13,26 @@ Use today's HST date (UTC-10, no DST) for the date stamp throughout.
 
 ## Step 0 — Song day?
 
-Once a week the brief is a song study guide instead of a news article. Today is a
-**song day** if EITHER:
+Once a week the brief is a song study guide instead of a news article.
 
-- today's HST date is a **Sunday**, OR
+**Get the weekday by running this command. Never infer it from the date.**
+
+    TZ=Pacific/Honolulu date +'%Y-%m-%d %A'
+
+This is not optional pedantry. On 2026-10-11 a run computed the HST date
+correctly, asserted "2026-10-11 in HST (Saturday, not Sunday), so it's not a
+song day", and skipped that week's song guide — the date was a Sunday, and the
+system-reminder announcing the run even said `Sun 2026-10-11`. Weekday
+arithmetic done from memory is unreliable; the command is not.
+
+Today is a **song day** if EITHER:
+
+- the command above prints `Sunday`, OR
 - the message that fired this run asks for a song (e.g. "song", "歌", "歌曲").
+
+Print the command's output before deciding, so the choice is auditable in the
+run log. If it prints `Sunday` you MUST take the song path even if the fired-at
+reminder or your own sense of the date suggests otherwise.
 
 On a song day, read `routines/song_guide.md` in this repo and follow it instead of
 the steps below (it reuses several of them). Otherwise continue with Step 1.
