@@ -186,8 +186,9 @@ TIEBREAKERS, in order:
 3. More topic-group matches > fewer.
 4. Variant variety: odd HST day-of-month → prefer Trad on ties; even → Simp.
 5. Topic-search and opinion results over top-headline; then publisher order:
-   天下獨立評論 > 鳴人堂/民意論壇 > 紐約時報中文網 > FT中文網 > 關鍵評論網 >
-   BBC 中文 > 中央社 > 自由時報 > ETtoday > 风传媒 > 联合早报 > 澎湃新闻 > 36氪 > any other.
+   天下獨立評論 > 鳴人堂/民意論壇 > BBC 中文 > 中央社 > 自由時報 > ETtoday >
+   风传媒 > 联合早报 > 澎湃新闻 > 36氪 > any other > 紐約時報中文網 > 關鍵評論網 >
+   FT中文網 (the last three often paywall — see Step 4.25's PAYWALL GATE).
 
 Weekly goal: across any 7 briefs, cover ≥4 distinct topic groups, never the
 same dominant entity more than twice, and **at least 3 of 7 tagged `opinion`**.
@@ -202,6 +203,27 @@ brief"; if still empty, pick the best candidate and prepend:
 ## Step 4.25 — Fetch the full article text
 
 For the picked article, fetch the full article body (not just the RSS summary) using curl with the browser User-Agent. RSS summaries are often only 1–3 sentences; the full body is required for Steps 4.5–5 to surface real collocations, register, and grammar patterns in context. If the full fetch fails, fall back to the RSS summary and note this at the bottom of the email.
+
+PAYWALL GATE — Huey reads the article itself at the link, so an article he cannot
+finish is a failed pick, even if you managed to extract enough text for a brief.
+REJECT the pick and move to the next-best candidate (re-applying Step 4's filters)
+if ANY of these hold:
+- The page shows a subscribe/login wall or a members-only marker: 付費, 訂閱,
+  訂閱解鎖, 會員專屬, 會員限定, 加入會員, 登入後閱讀, 登入繼續閱讀, 解鎖全文,
+  付费, 订阅, 会员专享, 登录后阅读, 解锁全文, "subscribe to continue", or
+  structured data with `"isAccessibleForFree": false`.
+- The body stops abruptly (e.g. a handful of paragraphs, then a CTA or nothing)
+  where the headline/summary promises a longer piece.
+- The publisher is a known hard paywall for most articles: FT中文网
+  (ftchinese.com), 天下雜誌 main site (cw.com.tw — NOT opinion.cw.com.tw, which is
+  free). 關鍵評論網 (thenewslens.com) and 紐約時報中文網 (cn.nytimes.com) lock
+  some articles but not all — they must pass the checks above, and if you
+  cannot load the page well enough to tell (e.g. a bot block), treat them as
+  paywalled and skip.
+Never send a brief on an article you judged paywalled, and never "proceed with
+what we have" plus a footnote. A paywall rejection does not count toward the
+3-pick limit in Edge cases; keep walking down the ranked candidates until one
+passes. Log each rejection (title + reason) in the run summary.
 
 ## Step 4.5 — Build the LEVEL LOOKUP TABLE for the picked article
 
