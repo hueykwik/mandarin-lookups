@@ -112,6 +112,13 @@ angle while a game recap is dropped.
 
 - sports vetoes: 棒球, 職棒, 职棒, 大聯盟, 大联盟, MLB, 中華職棒, 中华职棒, 世界棒球, 經典賽, 经典赛
   (Huey isn't interested in baseball. General sports coverage stays.)
+- soccer (conditional veto): if the title or summary contains 足球, 足壇, 足坛, 中超,
+  中甲, 國足, 国足, 男足, 女足, 足協, or 足协, the sports topic counts ONLY when it also
+  mentions the US team (美國隊, 美国队, 美國男足, 美国男足, 美國女足, 美国女足, USMNT,
+  USWNT) or a major international tournament (世界盃, 世界杯, 歐洲盃, 欧洲杯, 美洲盃,
+  美洲杯, 奧運, 奥运). Chinese league / 國足 stories never count, even with those terms.
+  (Huey finds club and Chinese soccer boring — e.g. a 中超综合 league roundup — but
+  the US team or a major national team at a big tournament is fine.)
 
 ## Step 2.5 — Recency memory (avoid repeating recent topics)
 
