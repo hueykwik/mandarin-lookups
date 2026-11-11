@@ -51,6 +51,16 @@ fetched text only.
 - Sanity-check what you got: the page names this song and artist, and the
   text is a full set of song lyrics (not a snippet, comment thread, or a
   different song with the same title).
+- **Traditional for Taiwan and Hong Kong songs.** If the song's `region` is
+  `TW` or `HK`, the guide must be in Traditional characters. Search
+  `{歌名} {歌手} 歌詞` with the title and artist in Traditional, and prefer
+  Traditional lyric pages (e.g. mojim.com, KKBOX, Taiwanese or HK sites) over
+  Mainland ones (music.163.com, kugeci.com, etc.). If the only lyrics that pass
+  the sanity check are Simplified, convert them rather than giving up:
+  `pip install opencc-python-reimplemented`, then
+  `opencc.OpenCC('s2twp').convert(text)` (use `s2hk` for HK songs). Mark the
+  header `[Trad]` and write the 摘要 and all quotes in Traditional. Songs from
+  other regions keep whatever character set the fetched lyrics use.
 - Strip credits (作詞/作曲/編曲 lines), ads, and repeated chorus markers.
   Keep the lyric lines in order.
 - If no page passes after 4 tries, try the next-best song from Step S2 (up to
