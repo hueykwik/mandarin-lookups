@@ -1,5 +1,5 @@
 <!--
-LAST-UPDATED: 2026-10-03
+LAST-UPDATED: 2026-11-11
 Song-day variant of the daily reading brief. reading_brief.md Step 0 hands off
 here on song days; everything not spelled out below (lookup table, synonym
 annotation, image-marker strip, email) reuses the matching step in
@@ -23,13 +23,22 @@ search fails, proceed with empty memory and add the footer note
 Load the pool from `$REPO_DIR/data/songs.json`. Pick only from this pool — do
 not invent songs or pull titles from memory.
 
+The point is songs the reader will actually **hear**: on streaming charts, at
+KTV, in shops and cafés in Taiwan and Singapore. Popularity beats lyrical depth.
+
 1. Drop every song already sent (Step S1). If that empties the pool, allow
    repeats and pick the song sent longest ago.
-2. Avoid the artist of the last song sent, and prefer a different `region`
+2. **Tier:** pick from `tier: "current"` by default. Use `tier: "ktv"` only
+   when the last **two** songs sent were both `current`, so two weeks in three
+   are current hits. (Look up each sent song's tier in the pool; a song not in
+   the pool counts as `ktv`.) If the chosen tier is empty, use the
+   other.
+3. Avoid the artist of the last song sent, and prefer a different `region`
    than the last song.
-3. Among what remains, pick the one whose lyrics are richest for a B2-C1
-   learner (real vocabulary and patterns, not mostly repeated hooks). Use the
-   HST date as a tiebreak so picks don't cluster.
+4. Among what remains, prefer the most widely heard song (newer and
+   higher-charting first). Do **not** favour slow, literary or "lyrically rich"
+   songs: a catchy hook with everyday vocabulary is fine. Use the HST date as a
+   tiebreak so picks don't cluster.
 
 ## Step S3 — Fetch the lyrics (never from memory)
 

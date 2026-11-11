@@ -24,7 +24,7 @@ lookup("政府")  # {'hsk2': 4, 'hsk3': '4', 'tocfl': 'B2'}
 - `data/hsk_levels.json` — HSK 2.0 (Hanban 2010), 4,993 forms.
 - `data/tocfl_levels.json` — Taiwan TOCFL, 14,736 forms. **Note:** level 7
   is a noisy overflow bucket and is treated as unlabeled by `lookup()`.
-- `data/songs.json` — curated pool of popular Mandarin songs for song day.
+- `data/songs.json` — song-day pool: current chart hits (tier `current`) plus KTV evergreens (tier `ktv`). Refresh the current tier yearly.
 - `data/cedict_ts.u8` — [CC-CEDICT](https://cc-cedict.org/), used only to
   build a Traditional ↔ Simplified normalization map. Licensed CC BY-SA 4.0.
 

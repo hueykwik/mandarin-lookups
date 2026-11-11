@@ -1,41 +1,397 @@
 {
-  "_comment": "Curated pool for the weekly song-day study guide (routines/song_guide.md). Add or remove entries freely; 'region' is TW / CN / HK / MY / SG, used for variety and register notes.",
+  "_comment": "Pool for the weekly song-day guide (routines/song_guide.md). Goal: songs Huey will actually hear (streaming charts, KTV, Taiwan/Singapore daily life), not literary deep cuts. tier='current' = charting 2019+ (sourced from KKBOX 2025 year-end, Holiday KTV Mandarin request chart, KKBOX 2024, Nov 2026); tier='ktv' = evergreen KTV staples. region is TW/CN/HK/MY/SG. Refresh the current tier yearly from KKBOX 華語年度 + KTV request charts.",
   "songs": [
-    {"title": "晴天", "artist": "周杰倫", "year": 2003, "region": "TW"},
-    {"title": "七里香", "artist": "周杰倫", "year": 2004, "region": "TW"},
-    {"title": "稻香", "artist": "周杰倫", "year": 2008, "region": "TW"},
-    {"title": "告白氣球", "artist": "周杰倫", "year": 2016, "region": "TW"},
-    {"title": "溫柔", "artist": "五月天", "year": 2000, "region": "TW"},
-    {"title": "倔強", "artist": "五月天", "year": 2004, "region": "TW"},
-    {"title": "突然好想你", "artist": "五月天", "year": 2008, "region": "TW"},
-    {"title": "十年", "artist": "陳奕迅", "year": 2003, "region": "HK"},
-    {"title": "好久不見", "artist": "陳奕迅", "year": 2007, "region": "HK"},
-    {"title": "江南", "artist": "林俊傑", "year": 2004, "region": "SG"},
-    {"title": "修煉愛情", "artist": "林俊傑", "year": 2013, "region": "SG"},
-    {"title": "遇見", "artist": "孫燕姿", "year": 2003, "region": "SG"},
-    {"title": "勇氣", "artist": "梁靜茹", "year": 2000, "region": "MY"},
-    {"title": "泡沫", "artist": "鄧紫棋", "year": 2012, "region": "HK"},
-    {"title": "光年之外", "artist": "鄧紫棋", "year": 2016, "region": "HK"},
-    {"title": "日不落", "artist": "蔡依林", "year": 2007, "region": "TW"},
-    {"title": "聽海", "artist": "張惠妹", "year": 1997, "region": "TW"},
-    {"title": "小幸運", "artist": "田馥甄", "year": 2015, "region": "TW"},
-    {"title": "小情歌", "artist": "蘇打綠", "year": 2006, "region": "TW"},
-    {"title": "雨愛", "artist": "楊丞琳", "year": 2009, "region": "TW"},
-    {"title": "說謊", "artist": "林宥嘉", "year": 2009, "region": "TW"},
-    {"title": "旅行的意義", "artist": "陳綺貞", "year": 2004, "region": "TW"},
-    {"title": "挪威的森林", "artist": "伍佰", "year": 1996, "region": "TW"},
-    {"title": "朋友", "artist": "周華健", "year": 1997, "region": "TW"},
-    {"title": "山丘", "artist": "李宗盛", "year": 2013, "region": "TW"},
-    {"title": "大風吹", "artist": "草東沒有派對", "year": 2016, "region": "TW"},
-    {"title": "愛人錯過", "artist": "告五人", "year": 2019, "region": "TW"},
-    {"title": "月亮代表我的心", "artist": "鄧麗君", "year": 1977, "region": "TW"},
-    {"title": "吻別", "artist": "張學友", "year": 1993, "region": "HK"},
-    {"title": "紅豆", "artist": "王菲", "year": 1998, "region": "HK"},
-    {"title": "陰天", "artist": "莫文蔚", "year": 1997, "region": "HK"},
-    {"title": "成都", "artist": "趙雷", "year": 2016, "region": "CN"},
-    {"title": "消愁", "artist": "毛不易", "year": 2017, "region": "CN"},
-    {"title": "演員", "artist": "薛之謙", "year": 2015, "region": "CN"},
-    {"title": "李白", "artist": "李榮浩", "year": 2013, "region": "CN"},
-    {"title": "大魚", "artist": "周深", "year": 2016, "region": "CN"}
+    {
+      "title": "跳樓機",
+      "artist": "LBI利比",
+      "year": 2025,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "任性",
+      "artist": "五月天",
+      "year": 2025,
+      "region": "TW",
+      "tier": "current"
+    },
+    {
+      "title": "像晴天像雨天",
+      "artist": "汪蘇瀧",
+      "year": 2025,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "看著我的眼睛說",
+      "artist": "張遠",
+      "year": 2025,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "有一種遺憾叫我們",
+      "artist": "于冬然",
+      "year": 2025,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "520",
+      "artist": "蕭秉治",
+      "year": 2025,
+      "region": "TW",
+      "tier": "current"
+    },
+    {
+      "title": "愚人節快樂",
+      "artist": "盧廣仲",
+      "year": 2025,
+      "region": "TW",
+      "tier": "current"
+    },
+    {
+      "title": "過了幾天",
+      "artist": "郭家瑋",
+      "year": 2025,
+      "region": "TW",
+      "tier": "current"
+    },
+    {
+      "title": "晚點",
+      "artist": "張碧晨",
+      "year": 2025,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "一起寂寞",
+      "artist": "邱鋒澤",
+      "year": 2024,
+      "region": "TW",
+      "tier": "current"
+    },
+    {
+      "title": "能遇見，就很不錯了",
+      "artist": "菲道爾",
+      "year": 2024,
+      "region": "TW",
+      "tier": "current"
+    },
+    {
+      "title": "如果可以",
+      "artist": "韋禮安",
+      "year": 2022,
+      "region": "TW",
+      "tier": "current"
+    },
+    {
+      "title": "孤勇者",
+      "artist": "陳奕迅",
+      "year": 2021,
+      "region": "HK",
+      "tier": "current"
+    },
+    {
+      "title": "嘉賓",
+      "artist": "張遠",
+      "year": 2021,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "錯位時空",
+      "artist": "艾辰",
+      "year": 2021,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "可可托海的牧羊人",
+      "artist": "王琪",
+      "year": 2020,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "飛鳥和蟬",
+      "artist": "任然",
+      "year": 2020,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "與我無關",
+      "artist": "阿冗",
+      "year": 2020,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "在這座城市遺失了你",
+      "artist": "告五人",
+      "year": 2020,
+      "region": "TW",
+      "tier": "current"
+    },
+    {
+      "title": "愛人錯過",
+      "artist": "告五人",
+      "year": 2019,
+      "region": "TW",
+      "tier": "current"
+    },
+    {
+      "title": "少年",
+      "artist": "夢然",
+      "year": 2019,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "從前說",
+      "artist": "小阿七",
+      "year": 2019,
+      "region": "CN",
+      "tier": "current"
+    },
+    {
+      "title": "晴天",
+      "artist": "周杰倫",
+      "year": 2003,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "七里香",
+      "artist": "周杰倫",
+      "year": 2004,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "擱淺",
+      "artist": "周杰倫",
+      "year": 2004,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "稻香",
+      "artist": "周杰倫",
+      "year": 2008,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "告白氣球",
+      "artist": "周杰倫",
+      "year": 2016,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "溫柔",
+      "artist": "五月天",
+      "year": 2000,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "倔強",
+      "artist": "五月天",
+      "year": 2004,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "突然好想你",
+      "artist": "五月天",
+      "year": 2008,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "十年",
+      "artist": "陳奕迅",
+      "year": 2003,
+      "region": "HK",
+      "tier": "ktv"
+    },
+    {
+      "title": "好久不見",
+      "artist": "陳奕迅",
+      "year": 2007,
+      "region": "HK",
+      "tier": "ktv"
+    },
+    {
+      "title": "江南",
+      "artist": "林俊傑",
+      "year": 2004,
+      "region": "SG",
+      "tier": "ktv"
+    },
+    {
+      "title": "修煉愛情",
+      "artist": "林俊傑",
+      "year": 2013,
+      "region": "SG",
+      "tier": "ktv"
+    },
+    {
+      "title": "遇見",
+      "artist": "孫燕姿",
+      "year": 2003,
+      "region": "SG",
+      "tier": "ktv"
+    },
+    {
+      "title": "勇氣",
+      "artist": "梁靜茹",
+      "year": 2000,
+      "region": "MY",
+      "tier": "ktv"
+    },
+    {
+      "title": "泡沫",
+      "artist": "鄧紫棋",
+      "year": 2012,
+      "region": "HK",
+      "tier": "ktv"
+    },
+    {
+      "title": "光年之外",
+      "artist": "鄧紫棋",
+      "year": 2016,
+      "region": "HK",
+      "tier": "ktv"
+    },
+    {
+      "title": "隱形的翅膀",
+      "artist": "張韶涵",
+      "year": 2006,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "天后",
+      "artist": "陳勢安",
+      "year": 2008,
+      "region": "MY",
+      "tier": "ktv"
+    },
+    {
+      "title": "黃昏",
+      "artist": "周傳雄",
+      "year": 2000,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "西海情歌",
+      "artist": "刀郎",
+      "year": 2006,
+      "region": "CN",
+      "tier": "ktv"
+    },
+    {
+      "title": "日不落",
+      "artist": "蔡依林",
+      "year": 2007,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "聽海",
+      "artist": "張惠妹",
+      "year": 1997,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "小幸運",
+      "artist": "田馥甄",
+      "year": 2015,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "小情歌",
+      "artist": "蘇打綠",
+      "year": 2006,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "說謊",
+      "artist": "林宥嘉",
+      "year": 2009,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "挪威的森林",
+      "artist": "伍佰",
+      "year": 1996,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "大海",
+      "artist": "張雨生",
+      "year": 1992,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "朋友",
+      "artist": "周華健",
+      "year": 1997,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "月亮代表我的心",
+      "artist": "鄧麗君",
+      "year": 1977,
+      "region": "TW",
+      "tier": "ktv"
+    },
+    {
+      "title": "吻別",
+      "artist": "張學友",
+      "year": 1993,
+      "region": "HK",
+      "tier": "ktv"
+    },
+    {
+      "title": "紅豆",
+      "artist": "王菲",
+      "year": 1998,
+      "region": "HK",
+      "tier": "ktv"
+    },
+    {
+      "title": "演員",
+      "artist": "薛之謙",
+      "year": 2015,
+      "region": "CN",
+      "tier": "ktv"
+    },
+    {
+      "title": "大魚",
+      "artist": "周深",
+      "year": 2016,
+      "region": "CN",
+      "tier": "ktv"
+    },
+    {
+      "title": "成都",
+      "artist": "趙雷",
+      "year": 2016,
+      "region": "CN",
+      "tier": "ktv"
+    }
   ]
 }
