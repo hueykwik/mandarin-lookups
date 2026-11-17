@@ -1,5 +1,5 @@
 <!--
-LAST-UPDATED: 2026-10-13
+LAST-UPDATED: 2026-11-17
 This file is the single source of truth for the daily Mandarin reading-brief
 cloud routine. The Claude Code routine config is just a bootstrap that clones
 this repo and follows this file — so edit HERE, commit, and the next run picks
@@ -70,6 +70,11 @@ does not. Fetch them on EVERY run, alongside the news feeds — not as a fallbac
 - Opinion, site-scoped (Simplified): https://news.google.com/rss/search?q={ENCODED}&hl=zh-CN&gl=CN&ceid=CN:zh-Hans
   · Build q as: site:cn.nytimes.com OR site:ftchinese.com OR site:thepaper.cn
   · variant: simp · label: 简体评论
+- Opinion, US politics (Traditional): https://news.google.com/rss/search?q={ENCODED}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant
+  · Build q as: (川普 OR 美國 OR 白宮 OR 關稅 OR 共和黨 OR 民主黨) (site:opinion.cw.com.tw OR site:opinion.udn.com OR site:storm.mg OR site:thenewslens.com)
+  · variant: trad · label: 繁體評論 (美國)
+  · Huey currently prefers US-politics commentary over Taiwan-politics
+    commentary (as of 2026-11-17). This feed makes sure some exist in the pool.
 
 Routing opinion platforms through Google News rather than hitting their own RSS
 is deliberate: direct feeds from this sandbox have a history of HTTP 403, while
@@ -119,6 +124,15 @@ angle while a game recap is dropped.
   美洲杯, 奧運, 奥运). Chinese league / 國足 stories never count, even with those terms.
   (Huey finds club and Chinese soccer boring — e.g. a 中超综合 league roundup — but
   the US team or a major national team at a big tournament is fine.)
+- Taiwan society + US politics vetoes (dry institutional politics): 憲法, 宪法,
+  憲政, 宪政, 釋憲, 释宪, 憲法法庭, 宪法法庭, 大法官, 副署, 覆議, 复议, 修憲, 修宪,
+  五權, 五权, 三權分立, 三权分立, 權力分立, 权力分立, 不信任案, 倒閣, 倒阁, 彈劾,
+  弹劾, 朝野協商, 朝野协商, 程序委員會, 程序委员会, 黨團, 党团, 預算審查, 预算审查,
+  法案審查, 法案审查, 最高法院, 阻撓議事, 阻挠议事, 參議院規則, 参议院规则.
+  (Huey finds constitutional and procedural politics dry, e.g. a 2026-11-17 投書
+  on the cabinet refusing to 副署 bills and a "憲法權力真空". This applies to
+  opinion and news alike. Politics with concrete stakes for people, such as
+  housing, labor, immigration or tariffs hitting prices, stays.)
 
 ## Step 2.5 — Recency memory (avoid repeating recent topics)
 
@@ -190,6 +204,10 @@ TIEBREAKERS, in order:
    the trailing 7.
 2. Genre novelty: prefer the genre that is under-represented in recent_genres
    (over the trailing 7, target ≥3 opinion). On a true tie, prefer opinion.
+   When choosing among `opinion` candidates, prefer one matching US politics
+   over one whose only political match is Taiwan society. This outranks
+   tiebreaker 1, unless US politics was the primary topic in both of the
+   last 2 briefs (the topic cooldown still wins).
 3. More topic-group matches > fewer.
 4. Variant variety: odd HST day-of-month → prefer Trad on ties; even → Simp.
 5. Topic-search and opinion results over top-headline; then publisher order:
