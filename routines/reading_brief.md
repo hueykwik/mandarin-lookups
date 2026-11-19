@@ -65,13 +65,13 @@ which carry the concessive/hedging/stance grammar that straight news reporting
 does not. Fetch them on EVERY run, alongside the news feeds — not as a fallback.
 
 - Opinion, site-scoped (Traditional): https://news.google.com/rss/search?q={ENCODED}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant
-  · Build q as: site:opinion.cw.com.tw OR site:opinion.udn.com OR site:storm.mg OR site:thenewslens.com
+  · Build q as: site:opinion.cw.com.tw OR site:opinion.udn.com OR site:storm.mg OR site:thenewslens.com OR site:talk.ltn.com.tw
   · variant: trad · label: 繁體評論
 - Opinion, site-scoped (Simplified): https://news.google.com/rss/search?q={ENCODED}&hl=zh-CN&gl=CN&ceid=CN:zh-Hans
   · Build q as: site:cn.nytimes.com OR site:ftchinese.com OR site:thepaper.cn
   · variant: simp · label: 简体评论
 - Opinion, US politics (Traditional): https://news.google.com/rss/search?q={ENCODED}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant
-  · Build q as: (川普 OR 美國 OR 白宮 OR 關稅 OR 共和黨 OR 民主黨) (site:opinion.cw.com.tw OR site:opinion.udn.com OR site:storm.mg OR site:thenewslens.com)
+  · Build q as: (川普 OR 美國 OR 白宮 OR 關稅 OR 共和黨 OR 民主黨) (site:opinion.cw.com.tw OR site:opinion.udn.com OR site:storm.mg OR site:thenewslens.com OR site:talk.ltn.com.tw)
   · variant: trad · label: 繁體評論 (美國)
   · Huey currently prefers US-politics commentary over Taiwan-politics
     commentary (as of 2026-11-17). This feed makes sure some exist in the pool.
@@ -142,7 +142,8 @@ sent Gmail as the durable history store.
 1. Via Gmail MCP, search sent mail: from:me subject:(今日中文閱讀) newer_than:8d
    Retrieve up to the 7 most recent briefs.
 2. From each, extract: the article title (first `## ` heading), the
-   topic groups (the `**主題：**` line) and the genre (the `**類型：**` line).
+   topic groups (the `**主題：**` line), the genre (the `**類型：**` line), the
+   publisher (the `**來源：**` line) and the 摘要.
 3. Build:
    - recent_topics: each topic group → how many of the last 7 briefs hit it.
    - recent_entities: the 1–3 most salient proper nouns per recent title
@@ -152,6 +153,9 @@ sent Gmail as the durable history store.
    - recent_genres: the genre of each of the last 7 briefs, newest first.
      Briefs sent before the 類型 field existed have no genre line — count
      those as `news`, which is what they were.
+   - recent_storm: how many of the last 7 briefs came from 風傳媒 (storm.mg).
+   - last_tw_lean: the lean (see Step 2.75) of the most recent brief that was
+     a Taiwan-politics opinion piece, judged from its title and 摘要.
 4. If Gmail search fails, proceed with empty memory and add a footer note:
    `_Note: recency memory unavailable this run._`
 
@@ -169,7 +173,8 @@ Mark a candidate `opinion` if ANY of these holds:
    trust it over the text heuristics below.
 2. **Known opinion platform or section**: 天下獨立評論 (opinion.cw.com.tw),
    聯合報 鳴人堂 / 民意論壇 (opinion.udn.com), 風傳媒 評論, 關鍵評論網,
-   紐約時報中文網 觀點 (cn.nytimes.com), FT中文網 專欄, 澎湃 思想市場 / 馬上評.
+   紐約時報中文網 觀點 (cn.nytimes.com), FT中文網 專欄, 澎湃 思想市場 / 馬上評,
+   自由評論網 (talk.ltn.com.tw: 自由廣場, 自由開講, 社論, 專欄).
 3. **Title carries a stance marker**: 社論, 短評, 時評/时评, 投書/投书, 專欄/专栏,
    觀點/观点, 我認為/我认为, 該不該/该不该, 為何/为何, 是否應/是否应, 別再/别再,
    憑什麼/凭什么, or a rhetorical question addressed to the reader.
@@ -179,6 +184,14 @@ Otherwise tag it `news`.
 **Do not tag on the bare word 評論/评论 appearing in a summary.** News reports
 routinely quote someone "評論說…", which is reporting, not commentary. Require a
 URL-path, platform, or title-level signal from the list above.
+
+**Lean (Taiwan-politics opinion only).** For each `opinion` candidate whose
+topics include Taiwan society and whose subject is party politics, also tag a
+lean: `blue` (argues against the DPP / 賴政府 / 綠營, or for the KMT/TPP),
+`green` (the reverse), or `neutral`. Judge from the title and summary: what
+the piece argues, not just who it mentions. Publisher reputation is only a
+prior: 風傳媒 投書 and 聯合報 鳴人堂/民意論壇 often run blue, 自由評論網
+(talk.ltn.com.tw) often runs green, but individual pieces vary.
 
 ## Step 3 — Difficulty rating
 
@@ -197,6 +210,13 @@ HARD FILTERS (apply BEFORE tiebreakers, using Step 2.5 memory):
   candidate today. This is the rule that actually shifts the mix — a soft
   preference alone loses to topic novelty almost every day, because opinion
   candidates are a small minority of what the feeds return.
+- Source cap: if recent_storm is already 2, exclude 風傳媒 candidates today.
+  (Storm out-publishes the other opinion sites, so without a cap it wins
+  almost every opinion day, and its 投書 section leans blue.)
+- Partisan balance: if last_tw_lean is `blue`, exclude `blue` candidates
+  today; if it is `green`, exclude `green` ones. Neutral and non-Taiwan
+  pieces are unaffected. Huey wants to read both camps' arguments, so the
+  Taiwan-politics opinion pieces should alternate between them.
 
 TIEBREAKERS, in order:
 1. Topic-group novelty: prefer a candidate whose primary topic group has NOT
@@ -211,7 +231,7 @@ TIEBREAKERS, in order:
 3. More topic-group matches > fewer.
 4. Variant variety: odd HST day-of-month → prefer Trad on ties; even → Simp.
 5. Topic-search and opinion results over top-headline; then publisher order:
-   天下獨立評論 > 鳴人堂/民意論壇 > BBC 中文 > 中央社 > 自由時報 > ETtoday >
+   天下獨立評論 > 自由評論網 > 鳴人堂/民意論壇 > BBC 中文 > 中央社 > 自由時報 > ETtoday >
    风传媒 > 联合早报 > 澎湃新闻 > 36氪 > any other > 紐約時報中文網 > 關鍵評論網 >
    FT中文網 (the last three often paywall — see Step 4.25's PAYWALL GATE).
 
