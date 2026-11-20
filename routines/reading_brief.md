@@ -1,5 +1,5 @@
 <!--
-LAST-UPDATED: 2026-11-17
+LAST-UPDATED: 2026-11-20
 This file is the single source of truth for the daily Mandarin reading-brief
 cloud routine. The Claude Code routine config is just a bootstrap that clones
 this repo and follows this file — so edit HERE, commit, and the next run picks
@@ -249,6 +249,13 @@ brief"; if still empty, pick the best candidate and prepend:
 
 For the picked article, fetch the full article body (not just the RSS summary) using curl with the browser User-Agent. RSS summaries are often only 1–3 sentences; the full body is required for Steps 4.5–5 to surface real collocations, register, and grammar patterns in context. If the full fetch fails, fall back to the RSS summary and note this at the bottom of the email.
 
+Once the article passes the paywall gate below, write its cleaned body text to
+`/tmp/article.txt`: the article's own paragraphs only, in order, exactly as
+published (same character set, no translation, no edits), one blank line between
+paragraphs. Drop navigation, captions, "related articles", ads, author bios and
+share prompts. If you could only get the RSS summary, write nothing to that file.
+Steps 5 and 6.5 use it.
+
 PAYWALL GATE — Huey reads the article itself at the link, so an article he cannot
 finish is a failed pick, even if you managed to extract enough text for a brief.
 REJECT the pick and move to the next-best candidate (re-applying Step 4's filters)
@@ -330,6 +337,15 @@ Assemble the email body as:
     as the source. Vocab-table HSK/TOCFL come from the LEVEL LOOKUP TABLE (Step 4.5);
     near-synonym levels are added automatically in Step 5.5 — do NOT add them by hand.
 
+(c) then, if `/tmp/article.txt` exists and is non-empty, the article itself at the
+    very end, so Huey can read it in the same email (guide first, then the text):
+
+        ---
+        ## 原文全文
+        {contents of /tmp/article.txt, verbatim}
+
+    Paste the file contents unchanged. Do not summarize, trim or re-flow them.
+
 ## Step 5.5 — Stamp HSK/TOCFL onto the near-synonyms
 
 Write the assembled brief to /tmp/brief.md, then run the shared annotator (same
@@ -364,6 +380,24 @@ Send the brief via the Gmail MCP connector to **huey.kwik@gmail.com**.
 - Subject: `今日中文閱讀 {YYYY-MM-DD}` (use today's HST date)
 - Body: the brief from Step 5.6 (`/tmp/brief_final.md`) — send as the message body. If the Gmail tool sends HTML, render the markdown to simple HTML preserving the vocab table. If it sends plain text, send the markdown as-is — Gmail will render the headings reasonably even as plain text.
 - Prefer sending directly; only create a draft if direct send isn't supported by the connector.
+
+## Step 6.5 — Archive the brief for the local reading page (after sending)
+
+Huey's Mac builds a reading page (article beside guide) from a private archive
+repo, which is cloned into your sandbox with push access:
+
+    ARCHIVE_DIR=$(find / -type d -name mandarin-reading-archive -not -path '*/node_modules/*' 2>/dev/null | head -1)
+    D=$(TZ=Pacific/Honolulu date +%F)
+    cd "$ARCHIVE_DIR" && git checkout -B claude/briefs origin/claude/briefs 2>/dev/null || git checkout -B claude/briefs
+    mkdir -p "briefs/$D"
+    cp /tmp/brief_final.md "briefs/$D/brief.md"   # or brief_annotated.md if that is what you emailed
+    [ -s /tmp/article.txt ] && cp /tmp/article.txt "briefs/$D/article.txt"
+    git add briefs && git -c user.name="reading-brief" -c user.email="noreply@anthropic.com" \
+      commit -qm "Brief $D" && git push origin claude/briefs
+
+Do this only for news briefs (not song days), and only AFTER the email is sent.
+If anything here fails, mention it in your end-of-run summary and stop; never
+re-send or delay the email because of this step.
 
 ## Edge cases
 
