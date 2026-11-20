@@ -256,6 +256,25 @@ paragraphs. Drop navigation, captions, "related articles", ads, author bios and
 share prompts. If you could only get the RSS summary, write nothing to that file.
 Steps 5 and 6.5 use it.
 
+Also save the article's own photos (for the local reading page, not the email).
+Take only photos inside the article body: the lead photo and in-text figures,
+with their captions. Skip logos, ads and sponsor banners, author headshots,
+icons, share buttons and the thumbnails of related or recommended articles. At
+most 4. Many publishers sign image URLs with short expiry, so download them now,
+using the exact URL from the page you fetched:
+
+    mkdir -p /tmp/img
+    curl -sL -A "$UA" -e "$ARTICLE_URL" -o /tmp/img/img1.jpg "$IMAGE_URL"
+    file /tmp/img/img1.jpg    # keep only if it says image data and is > 10 KB
+
+(`$UA` is the browser User-Agent above; use the real extension if it is not
+JPEG.) For each image you keep, put a line in `/tmp/article.txt` where the
+image sits in the article (the lead photo goes before the first paragraph):
+
+    [[IMG|img1.jpg|caption, verbatim from the page, or empty]]
+
+If no photo qualifies or downloads fail, skip this; it never blocks the brief.
+
 PAYWALL GATE — Huey reads the article itself at the link, so an article he cannot
 finish is a failed pick, even if you managed to extract enough text for a brief.
 REJECT the pick and move to the next-best candidate (re-applying Step 4's filters)
@@ -342,9 +361,10 @@ Assemble the email body as:
 
         ---
         ## 原文全文
-        {contents of /tmp/article.txt, verbatim}
+        {output of: grep -v '^\[\[IMG|' /tmp/article.txt}
 
-    Paste the file contents unchanged. Do not summarize, trim or re-flow them.
+    Paste that text unchanged (the image lines are left out of the email on
+    purpose). Do not summarize, trim or re-flow it.
 
 ## Step 5.5 — Stamp HSK/TOCFL onto the near-synonyms
 
@@ -392,8 +412,9 @@ repo, which is cloned into your sandbox with push access:
     mkdir -p "briefs/$D"
     cp /tmp/brief_final.md "briefs/$D/brief.md"   # or brief_annotated.md if that is what you emailed
     [ -s /tmp/article.txt ] && cp /tmp/article.txt "briefs/$D/article.txt"
+    cp /tmp/img/* "briefs/$D/" 2>/dev/null || true
     git add briefs && git -c user.name="reading-brief" -c user.email="noreply@anthropic.com" \
-      commit -qm "Brief $D" && git push origin claude/briefs
+      commit -qm "Brief $D" && git pull -q --rebase origin claude/briefs; git push origin claude/briefs
 
 Do this only for news briefs (not song days), and only AFTER the email is sent.
 If anything here fails, mention it in your end-of-run summary and stop; never
